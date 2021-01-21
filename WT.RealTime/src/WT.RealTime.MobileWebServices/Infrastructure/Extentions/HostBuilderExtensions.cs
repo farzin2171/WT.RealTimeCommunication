@@ -1,9 +1,11 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Compact;
+using Serilog.Sinks.Elasticsearch;
 using WT.RealTime.MobileWebServices.Infrastructure.Logging;
 
 namespace WT.RealTime.MobileWebServices.Infrastructure.Extentions
@@ -39,7 +41,17 @@ namespace WT.RealTime.MobileWebServices.Infrastructure.Extentions
                 {
                     loggerConfiguration
                         .MinimumLevel.Debug()
-                        .WriteTo.Console();
+                        .WriteTo.Console()
+                        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(hostingContext.Configuration["ElasticConfiguration:Uri"]))
+                        {
+                            IndexFormat = $"WebAPI-Logs-{DateTime.UtcNow:yyyy-MM}",
+                            AutoRegisterTemplate = true,
+                            NumberOfShards = 2,
+                            NumberOfReplicas = 1
+                        })
+                        .Enrich.WithProperty("Environment", hostingContext.HostingEnvironment.EnvironmentName);
+                       
+                        
                 }
                 else
                 {
