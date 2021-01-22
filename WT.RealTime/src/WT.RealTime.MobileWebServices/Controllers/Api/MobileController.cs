@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using WT.RealTime.Domain.Enums;
 using WT.RealTime.Domain.Models;
 using WT.RealTime.MobileWebServices.Infrastructure;
+using WT.RealTime.MobileWebServices.Models.InputModels;
+using System.Text.Json;
 
 namespace WT.RealTime.MobileWebServices.Controllers.Api
 {
@@ -24,25 +26,19 @@ namespace WT.RealTime.MobileWebServices.Controllers.Api
         {
             _logger = logger;
         }
-        /// <summary>
-        /// Search applications
-        /// </summary>
-        /// <param name="sort">Specify which column will be used for sort, 
-        ///                    by default the column will be sorted in Ascending order.
-        ///                    add - as a prefix to do a Descending sort.</param>
-        /// <param name="limit">The number of maximum messages to return.</param>                   
-        /// <param name="offset">Skip a number of entries, to handle paging.</param>
-        [HttpGet]
+       
         //[ProducesResponseType(typeof(ApplicationListQueryResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromQuery] string sort = "-createdOn", [FromQuery] int limit = 10, int offset = 0)
+        [HttpPost]
+        public async Task<IActionResult> Post(LocationModel location)
         {
             var (messageBrokerPublisher, messageBrokerSubscriber) = MessageBrokerFactory.Create(MessageBrokerType.RabbitMq);
             try
             {
-                var body = Encoding.UTF8.GetBytes("This is the message body");
+                var message = JsonSerializer.Serialize(location);
+                var body = Encoding.UTF8.GetBytes(message);
                 await messageBrokerPublisher.Publish(new Message(body, Guid.NewGuid().ToString("N"), "application/json", "My MessageBroker", "corr_" + Guid.NewGuid().ToString("N")));
 
             }

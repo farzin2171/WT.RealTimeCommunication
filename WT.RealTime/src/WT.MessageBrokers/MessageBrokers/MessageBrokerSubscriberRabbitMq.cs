@@ -3,6 +3,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using WT.RealTime.Domain.Models;
 
 namespace WT.MessageBrokers
@@ -48,17 +49,20 @@ namespace WT.MessageBrokers
             }
         }
 
-        protected override void SubscribeCore(Action<MessageReceivedEventArgs> receiveCallback)
+        protected override void SubscribeCore(Func<MessageReceivedEventArgs,Task> receiveCallback)
         {
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (model, ea) =>
             {
+                
+                DateTime creationDateTime = ea.BasicProperties.Headers !=null ?
+                         DateTime.Parse(Encoding.UTF8.GetString((byte[])ea.BasicProperties.Headers["CreationDateTime"])) : DateTime.UtcNow;
                 var message = new Message(body: ea.Body.ToArray(),
                     messageId: ea.BasicProperties.MessageId,
                     contentType: ea.BasicProperties.ContentType,
                     applicationId: ea.BasicProperties.AppId,
                     correlationId: ea.BasicProperties.CorrelationId,
-                    creationDateTime: DateTime.Parse(Encoding.UTF8.GetString((byte[])ea.BasicProperties.Headers["CreationDateTime"])));
+                    creationDateTime:creationDateTime);
 
                 var messageReceivedEventArgs = new MessageReceivedEventArgs(message, ea.DeliveryTag.ToString(), new CancellationToken());
                 receiveCallback(messageReceivedEventArgs);
