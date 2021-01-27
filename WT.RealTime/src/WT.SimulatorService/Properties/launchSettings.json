@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "WT.SimulatorService": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
