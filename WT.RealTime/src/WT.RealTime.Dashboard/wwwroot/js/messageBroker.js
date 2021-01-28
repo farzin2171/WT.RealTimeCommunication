@@ -11,34 +11,45 @@ signalrConnection.start().then(function () {
 });
 
 let messageCount = 0;
+let map;
+let marker;
 
+function initMap(coords) {
 
-function initMap() {
-    var options = {
-        center: new google.maps.LatLng(45.5162589, -73.5939865),
-        zoom: 16
-    };
-    var map = new google.maps.Map(document.getElementById("googleMap"), options);
+    if (!coords) {
 
-    function addMarker(coords) {
-        var marker = new google.maps.Marker({
-            position: coords,
+        let options = {
+            center: new google.maps.LatLng(45.5162589, -73.5939865),
+            zoom: 16
+        };
+        map = new google.maps.Map(document.getElementById("googleMap"), options);
+
+      
+        marker = new google.maps.Marker({
+            position: { lat: 45.5162589, lng: -73.5939865 },
             map: map
         });
     }
+   
+    if (coords) {
+        console.log(coords.lat);
+        console.log(typeof (coords.lat));
+        let newposition = new google.maps.LatLng(coords.lat, coords.lng);
+        console.log(newposition);
+        marker.setPosition(newposition);
+        map.panTo(newposition);
+    }
+
+   
 }
-
-
-
 
 
 signalrConnection.on("onMessageRecived", function (eventMessage) {
    
 
     var point = JSON.parse(eventMessage.title);
-    console.log(point);
     
-    addMarker({ lat: point.Latitude, lng: point.Longitude });
+    initMap({ lat: point.Latitude, lng: point.Longitude });
     //messageCount++;
     //const msgCountH4 = document.getElementById("messageCount");
     //msgCountH4.innerText = "Messages: " + messageCount.toString();
